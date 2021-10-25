@@ -22,6 +22,10 @@ create_install_OrgDb <- function(geneID_symbom_df,
     
     fSym <- unique(geneID_symbom_df[, c(1,3)])
     colnames(fSym) <- c("GID", "SYMBOL")
+    if (all(grepl("_", fSym$SYMBOL, perl= TRUE)))
+    {
+          fSym$SYMBOL <- gsub("_.+", "", fSym$SYMBOL, perl = TRUE)
+    }
     
     ensembl <- unique(geneID_symbom_df[, c(1,1)])
     colnames(ensembl) <- {if (id_type == "ENSEMBL") {c("GID", "ENSEMBL")} else {
