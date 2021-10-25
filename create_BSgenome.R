@@ -11,7 +11,7 @@ generate_multifasta <- function(path_single_fasta_genome, out_dir)
     }
     if (!dir.exists(out_dir))
     {
-        dir.create(out_dir)
+        dir.create(out_dir, recursive = TRUE)
     }
     
     if (grepl(".(fa|fasta).gz$", path_single_fasta_genome))
