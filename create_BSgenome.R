@@ -2,7 +2,7 @@
 ## chr1.fa.gz, chr2.fa.gz,...
 generate_multifasta <- function(path_single_fasta_genome, out_dir)
 {
-    if (missing(path_single_fasta_genome) | missinge(out_dir))
+    if (missing(path_single_fasta_genome) | missing(out_dir))
     {
         stop("path_single_fasta_genome and out_dir are required!")
     }
