@@ -165,6 +165,8 @@ get_geneID_symbol <- function(gtf, species_latin_name)
 
 create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL, 
                                                  geneID2Symbol,
+                                                 flank = 2000,
+                                                 promoterRange = c(upstream = 2000, downstream = 100),
                                                  out_dir)
 {
     if (is.null(TxDb) || !is(TxDb, "TxDb"))
@@ -223,14 +225,29 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
                          fix = "start")) %>% 
            plyranges::select(-c("tx_id"))
     
+    ## remove genes whose promoters are close to the chromosome end (promoter regions in upstream and downstream [2000, 100])
+    gene_start <-  resize(genes, width = 1, fix ="start")
+    gene_start_downstream <- stretch(anchor_5p(gene_start), extend = promoterRange[2])
+    gene_start_upstream <- stretch(anchor_3p(gene_start), extend = promoterRange[1])
+    downstream_out_of_bound_index <- GenomicRanges:::get_out_of_bound_index(gene_start_downstream)
+    upstream_out_of_bound_index <- GenomicRanges:::get_out_of_bound_index(gene_start_upstream)
+    gene_out_of_bound_index <- c(downstream_out_of_bound_index, upstream_out_of_bound_index)
+    if (length(gene_out_of_bound_index) >0)  
+    {
+        genes <- genes[-c(gene_out_of_bound_index)]
+    }
+    
+    ## remove exons with genes removed due to out of bound
+    exons <- exons[mcols(exons)$symbol %in% mcols(genes)$symbol]
+    
     ## remove TSSs which are close to the chromosome end (<=2000 bp)
     TSS_2kb_flank <- resize(TSS, 
-                        width = 4001, 
+                        width = 2 * flank + 1, 
                         fix = "center")
-    out_of_bound_index <- GenomicRanges:::get_out_of_bound_index(TSS_2kb_flank)
-    if (length(out_of_bound_index) >0)  # otherwise get empty TSS
+    TTS_out_of_bound_index <- GenomicRanges:::get_out_of_bound_index(TSS_2kb_flank)
+    if (length(TSS_out_of_bound_index) >0)  # otherwise get empty TSS
     {
-        TSS <- TSS[-c(out_of_bound_index)]
+        TSS <- TSS[-c(TSS_out_of_bound_index)]
     }
     
     ## Create geneAnnotation
