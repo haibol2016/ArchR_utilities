@@ -176,10 +176,9 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
         stop("geneID2Symbol and out are required!")
     }
     if (!is.data.frame(geneID2Symbol) || 
-        all(colnames(geneID2Symbol) == c("gene_id", "symbol")))
+        any(colnames(geneID2Symbol) != c("gene_id", "symbol")))
     {
-        stop(geneID2Symbol, 
-             "must be a dataframe with colnames:'gene_id', 'symbol'!")
+        stop("geneID2Symbol must be a dataframe with colnames:'gene_id', 'symbol'!")
     }
     if (!dir.exists(out_dir))
     {
@@ -228,9 +227,9 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
         genome = NULL,
         TxDb = NULL,
         OrgDb = NULL,
-        genes = gene,
-        exons = exon,
-        TSS = tss,
+        genes = genes,
+        exons = exons,
+        TSS = TSS,
         annoStyle = "ENSEMBL")
     saveRDS(geneAnnotation, file = file.path(out_dir, "geneAnnotation.RDS"))
     geneAnnotation
