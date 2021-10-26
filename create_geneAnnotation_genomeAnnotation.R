@@ -222,6 +222,15 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
                          width = 1, 
                          fix = "start"))
     
+    ## remove TSSs which are close to the chromosome end (<=2000 bp)
+    TSS_2kb_flank <- resize(TSS, 
+                        width = 4001, 
+                        fix = "center")
+    seqinfo(TSS_2kb_flank) <- seqinfo(TSS) <- seqinfo(TxDb)
+    seqinfo(exons) <- seqinfo(genes) <- seqinfo(TxDb)
+    out_of_bound_index <- GenomicRanges:::get_out_of_bound_index(TSS_2kb_flank)
+    TSS <- TSS[-c(out_of_bound_index)]
+    
     ## Create geneAnnotation
     geneAnnotation <- createGeneAnnotation(
         genome = NULL,
