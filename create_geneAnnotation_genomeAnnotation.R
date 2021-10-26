@@ -259,15 +259,16 @@ create_ArchR_genomeannotation <- function(BSgenome, out_dir,
     {
         if (grepl(".bed.gz$", blacklist_bed))
         {
-            blacklist <- gzfile(gtf, open ="rt")
-        } else if (grepl(".bed$", gtf)) {
-            blacklist <- file(gtf, open = "r")
+            blacklist <- gzfile(blacklist_bed, open ="rt")
+        } else if (grepl(".bed$", blacklist_bed)) {
+            blacklist <- file(blacklist_bed, open = "r")
         } else {
             stop("It seems the Blacklist file is not a bed file ",
                  "which should with an extension .bed, or .bed.gz")
         }
         blacklist_df <- read.delim(blacklist, 
                                    header = blacklist_hasheader)
+        close(blacklist)
         if (ncol(blacklist_df) < 3 || 
             any(!blacklist_df[,1] %in% names(chrom_len)) || 
             any(!is.numeric(blacklist_df[,2])) || 
