@@ -43,13 +43,13 @@ forgeTxDb <- function(BSgenome, gtf, out_TxDb_dir)
     TxDb <- makeTxDbFromGFF(file = in_gtf,
                             format = "gtf",
                             dataSource = genome_metadata$provider,
-                            organism = genome_metadata$genome_metadata,
+                            organism = genome_metadata$organism,
                             taxonomyId = NA,
                             chrominfo = chrominfo,
                             miRBaseBuild = NA)
-    close(gtf)
+    close(in_gtf)
     TxDb_file <- file.path(out_TxDb_dir, 
-                           paste0(BSgenome, "TxDb.sqlite"))
+                           paste0(genome_metadata$genome, "TxDb.sqlite"))
     saveDb(TxDb, file = TxDb_file)
     TxDb_file
 }
