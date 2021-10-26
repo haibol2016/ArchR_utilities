@@ -220,7 +220,8 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
     ## Create GRanges for TSS
     TSS <- unique(resize(GenomicFeatures::transcripts(TxDb), 
                          width = 1, 
-                         fix = "start"))
+                         fix = "start")) %>% 
+           plyranges::select(-c("tx_id"))
     
     ## remove TSSs which are close to the chromosome end (<=2000 bp)
     TSS_2kb_flank <- resize(TSS, 
