@@ -227,7 +227,10 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
                         width = 4001, 
                         fix = "center")
     out_of_bound_index <- GenomicRanges:::get_out_of_bound_index(TSS_2kb_flank)
-    TSS <- TSS[-c(out_of_bound_index)]
+    if (length(out_of_bound_index) >0)  # otherwise get empty TSS
+    {
+        TSS <- TSS[-c(out_of_bound_index)]
+    }
     
     ## Create geneAnnotation
     geneAnnotation <- createGeneAnnotation(
