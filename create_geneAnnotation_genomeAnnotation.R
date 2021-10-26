@@ -269,9 +269,9 @@ create_ArchR_genomeannotation <- function(BSgenome, out_dir,
         blacklist_df <- read.delim(blacklist, 
                                    header = blacklist_hasheader)
         if (ncol(blacklist_df) < 3 || 
-            !any(blacklist_df[,1] %in% names(chrom_len)) || 
-            !any(is.numeric(blacklist_df[,2])) || 
-            !any(is.numeric(blacklist_df[,3])))
+            any(!blacklist_df[,1] %in% names(chrom_len)) || 
+            any(!is.numeric(blacklist_df[,2])) || 
+            any(!is.numeric(blacklist_df[,3])))
         {
             stop(blacklist_bed, " is not a valid BED file!")
         }
