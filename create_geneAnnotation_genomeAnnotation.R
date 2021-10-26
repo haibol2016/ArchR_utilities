@@ -49,7 +49,7 @@ forgeTxDb <- function(BSgenome, gtf, out_TxDb_dir)
                             miRBaseBuild = NA)
     close(in_gtf)
     TxDb_file <- file.path(out_TxDb_dir, 
-                           paste0(genome_metadata$genome, "TxDb.sqlite"))
+                           paste0(genome_metadata$genome, ".TxDb.sqlite"))
     saveDb(TxDb, file = TxDb_file)
     TxDb_file
 }
