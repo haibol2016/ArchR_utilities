@@ -163,10 +163,13 @@ get_geneID_symbol <- function(gtf, species_latin_name)
     }
 }
 
+## It is better to filter chrM, chrY for mammals, chrM for other animal and fungi, chrM and chrPltd for plants
 create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL, 
                                                  geneID2Symbol,
                                                  flank = 2000,
                                                  promoterRange = c(upstream = 2000, downstream = 100),
+                                                 filter = TRUE,
+                                                 filterChr = c("chrM"),
                                                  out_dir)
 {
     if (is.null(TxDb) || !is(TxDb, "TxDb"))
@@ -189,6 +192,10 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
     ## geneID2Symbol: col1: gene_id; col2: gene_symbol
     symbol <- geneID2Symbol[, 2]
     names(symbol) <- geneID2Symbol[, 1]
+    
+    ## filter seqnames of no interest, such as mitochondrial genome
+    seqlevels_all <- seqlevel(TxDb)
+    seqlevels(TxDb) <- seqlevels_all[!seqlevels_all %in% filterChr]
     
     ## GRanges for genes
     genes <- GenomicFeatures::genes(TxDb) %>%
@@ -232,6 +239,7 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
     downstream_out_of_bound_index <- GenomicRanges:::get_out_of_bound_index(gene_start_downstream)
     upstream_out_of_bound_index <- GenomicRanges:::get_out_of_bound_index(gene_start_upstream)
     gene_out_of_bound_index <- c(downstream_out_of_bound_index, upstream_out_of_bound_index)
+    
     if (length(gene_out_of_bound_index) >0)  
     {
         genes <- genes[-c(gene_out_of_bound_index)]
@@ -265,9 +273,12 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
 
 ## create genomeAnnotation using a BSgenome and an optional blacklist in the 
 ## BED format
+## It is better to filter chrM, chrY, and chromosomes without TSSs/genes at all
 create_ArchR_genomeannotation <- function(BSgenome, out_dir, 
                                           blacklist_bed = NULL, 
-                                          blacklist_hasheader = FALSE)
+                                          blacklist_hasheader = FALSE,
+                                          filter = TRUE,
+                                          filterChr = c("chrM"))
 {
     if (missing(BSgenome) | is.null(BSgenome) | !is(BSgenome, "BSgenome"))
     {
@@ -312,8 +323,8 @@ create_ArchR_genomeannotation <- function(BSgenome, out_dir,
     genomeAnnotation <- createGenomeAnnotation(genome = BSgenome,
                                                chromSizes = chromSizes,
                                                blacklist = blacklist,
-                                               filter = TRUE,
-                                               filterChr = c("chrM"))
+                                               filter = filter,
+                                               filterChr = filterChr)
     saveRDS(genomeAnnotation, file = file.path(out_dir, 
                                                "genomeAnnotation.RDS"))
     genomeAnnotation
