@@ -194,7 +194,7 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
     names(symbol) <- geneID2Symbol[, 1]
     
     ## filter seqnames of no interest, such as mitochondrial genome
-    seqlevels_all <- seqlevel(TxDb)
+    seqlevels_all <- seqlevels(TxDb)
     seqlevels(TxDb) <- seqlevels_all[!seqlevels_all %in% filterChr]
     
     ## GRanges for genes
