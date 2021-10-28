@@ -11,7 +11,7 @@ library("BSgenome")
 # make TxDb from a GTF file
 forgeTxDb <- function(BSgenome, gtf, out_TxDb_dir)
 {
-    if (missing(BSgenome) | missing(gtf) | missing(out_TxDb_dir))
+    if (missing(BSgenome) || missing(gtf) || missing(out_TxDb_dir))
     {
         stop("All arguments are required: BSgenome, gtf, and out_TxDb_dir!")
     }
@@ -57,8 +57,12 @@ forgeTxDb <- function(BSgenome, gtf, out_TxDb_dir)
 
 ## get gene Symbol from the GTF file if exists, otherwise get the gene symbols
 ## from biomart
-get_geneID_symbol <- function(gtf, species_latin_name)
+get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
 {
+    if (is.null(gtf) || is.na(gtf))
+    {
+        stop("gtf is required!")
+    }
     if (!file.exists(gtf)){
         stop(gtf, " doesn't exist!")
     }
@@ -94,6 +98,10 @@ get_geneID_symbol <- function(gtf, species_latin_name)
     
     if (all(unlist(id2symbol_dict$values()) == "NA"))
     {
+        if (is.null(species_latin_name) || is.na(species_latin_name) || !grepl("^(.).+\\W(.+)", species_latin_name))
+        {
+            stop("species_latin_name is required or not correct!")
+        }
         message("The GTF file contains no gene symbols. ", 
                 "Query Biomart to get gene symbols")
         require("biomaRt")
@@ -264,22 +272,27 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
     geneAnnotation
 }
 
-## create genomeAnnotation using a BSgenome and an optional blacklist in the 
-## BED format
-## It is preferrable to filter chrM, chrY, and chromosomes without TSSs/genes at all,
-## so to avoid empty GRanges for TSS and genes after splitting by seqnames when create ArrowFiles
-## which cause errors.
-create_ArchR_genomeannotation <- function(BSgenome, out_dir, 
+## create genomeAnnotation using a BSgenome, geneAnnotation, and an optional blacklist in the BED format.
+## Always filter out chrM, chrPltd(plants), chrY (mammals), and chromosomes without TSSs/genes at all,
+## Filter out chromosomes without TSSs/genes to avoid empty GRanges for TSS and genes after splitting 
+## by seqnames when create ArrowFiles which cause errors and no ArrowFiles will be generated for those excluded
+## chromosomes. Usually, ArrowFiles for chromosomes without TSSs/genes are empty.
+create_ArchR_genomeannotation <- function(BSgenome = NULL,
+                                          geneAnnotation = NULL,
+                                          out_dir = NULL, 
                                           blacklist_bed = NULL, 
                                           blacklist_hasheader = FALSE,
-                                          filter = TRUE,
                                           filterChr = c("chrM"))
 {
-    if (missing(BSgenome) | is.null(BSgenome) | !is(BSgenome, "BSgenome"))
+    if (missing(BSgenome) || is.null(BSgenome) || !is(BSgenome, "BSgenome"))
     {
-        stop(BSgenome, " must be a BSgenomeobject!")
+        stop("BSgenome must be a BSgenomeobject!")
     }
-    if (missing(out_dir))
+    if (is.null(geneAnnotation) || !is(geneAnnotation, "SimpleList"))
+    {
+        stop("geneAnnotation must be a SimpleList containing GRanges for genes, exons and TSSs!")
+    }
+    if (is.null(out_dir))
     {
         stop("out_dir is required!")
     }
@@ -323,10 +336,15 @@ create_ArchR_genomeannotation <- function(BSgenome, out_dir,
     }
     if (filter)
     {
-        kept_seqlevels <- all_seqlevels[!all_seqlevels %in% filterChr]
+        tss_chr <- unique(seqnames(geneAnnotation$TSS))
+        ## filter extra chromosomes/scaffolds so no ArrowFile generated for them
+        if (!is.null(filterChr) && !is.na(filterChr))
+        {
+            tss_chr <- tss_chr[!tss_chr %in% filterChr]
+        }
         ## filter blacklist
-        seqlevels(blacklist, pruning.mode="coarse") <- kept_seqlevels
-        seqlevels(chromSizes, pruning.mode="coarse") <- kept_seqlevels
+        seqlevels(blacklist, pruning.mode="coarse") <- tss_chr
+        seqlevels(chromSizes, pruning.mode="coarse") <- tss_chr
     }
     
     # don't need ArchR createGenomeAnnotation() function
