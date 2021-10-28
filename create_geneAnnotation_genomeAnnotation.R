@@ -16,10 +16,10 @@ forgeTxDb <- function(BSgenome, gtf, out_TxDb_dir)
         stop("All arguments are required: BSgenome, gtf, and out_TxDb_dir!")
     }
     if (!is(BSgenome, "BSgenome")){
-        stop(BSgenome, " is not a BSgenome object!")
+        stop("BSgenome is not a BSgenome object!")
     }
     if (!file.exists(gtf)){
-        stop(gtf, " doesn't exist!")
+        stop("gtf doesn't exist!")
     }
     if (grepl(".gtf.gz$", gtf))
     {
@@ -59,12 +59,9 @@ forgeTxDb <- function(BSgenome, gtf, out_TxDb_dir)
 ## from biomart
 get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
 {
-    if (is.null(gtf) || is.na(gtf))
+    if (is.null(gtf) || is.na(gtf) || !file.exists(gtf))
     {
-        stop("gtf is required!")
-    }
-    if (!file.exists(gtf)){
-        stop(gtf, " doesn't exist!")
+        stop("gtf is required, or the gtf provided doesn't exist!")
     }
     if (grepl(".gtf.gz$", gtf))
     {
@@ -96,6 +93,22 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
         }
     })
     
+    ## check gene_id type
+    gene_ids <- unlist(id2symbol_dict$keys())
+    id_type <- {if (grepl("^ENS.*?G\\d+", gene_ids[1], perl = TRUE)) {"ensembl_gene_id"} 
+                else if (grepl("^\\d+$", gene_ids[1], perl = TRUE)){"entrezgene_id"} 
+                else if (!grepl("^ENS.*?T\\d+", gene_ids[1], perl = TRUE) && 
+                         grepl("[a-zA-Z0-9]+", gene_ids[1],  perl = TRUE)) {"gene_name"} 
+                else {"unknown"}}
+    if (id_type == "unknown")
+    {
+       stop("Unkown gene ID type!")
+    } else if (id_type == "gene_name"){
+       id_symbol <- data.frame(gene_id = gene_id, symbol = gene_id)
+       return(id_symbol)
+    }
+    
+    ## for gene_id types: ensembl_gene_id and entrezgene_id, if gene_name is sompletely missing, query Biomart databases
     if (all(unlist(id2symbol_dict$values()) == "NA"))
     {
         if (is.null(species_latin_name) || is.na(species_latin_name) || !grepl("^(.).+\\W(.+)", species_latin_name))
@@ -109,16 +122,6 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
                               species_latin_name, perl = TRUE))
         
         ## try different biomart: animal, plant, fungi, metazona
-        hosts <-gene_ids <- unlist(id2symbol_dict$keys())
-        id_type <- {if (grepl("^ENS.*?G\\d+", gene_ids[1])) {"ensembl_gene_id"} 
-            else if (grepl("^\\d+$", gene_ids[1])){"entrezgene_id"} 
-            else {"unknown"}}
-        if (id_type == "unknow")
-        {
-            stop("Unkow gene ID type!")
-        }
-        
-        
         hosts <- c("https://www.ensembl.org/", "https://plants.ensembl.org/",
                    "https://fungi.ensembl.org/", "https://metazoa.ensembl.org/")
         
