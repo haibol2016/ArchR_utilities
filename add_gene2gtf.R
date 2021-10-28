@@ -36,8 +36,7 @@ add_gene2gtf <- function(gtf, out_dir = ".", gz_out = TRUE)
         gtf_file <- file(out_filename, open = "w")
     }
 
-    rtracklayer::export(fixed_gtf, 
-                        con = gtf_file)
+    rtracklayer::export(fixed_gtf, con = gtf_file)
     close(gtf_file)
     out_filename
 }
