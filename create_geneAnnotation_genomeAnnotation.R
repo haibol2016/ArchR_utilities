@@ -136,27 +136,59 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
         ## try different biomart: animal, plant, fungi, metazona
         hosts <- c("https://www.ensembl.org/", "https://plants.ensembl.org/",
                    "https://fungi.ensembl.org/", "https://metazoa.ensembl.org/")
-        
-        hosts <- sapply(hosts, function(.x){
-            listMarts(host = .x)$biomart[1]
-        })
-        
+       hosts <- try({hosts <- sapply(hosts, function(.x){
+                                 listMarts(host = .x)$biomart[1]})
+                     return(hosts)
+                   })
+        while (is(hosts, "try-error"))
+        {
+            hosts <- try({hosts <- sapply(hosts, function(.x){
+                                     listMarts(host = .x)$biomart[1]})
+                          return(hosts)
+                        })
+        }
         id_symbol <- data.frame()
         for (i in seq_along(hosts))
         {
-            ensembl <- useEnsembl(biomart = hosts[i], host = names(hosts)[i])
-            datasets <- searchDatasets(ensembl, pattern = species)$dataset
+            datasets <- try({
+                                ensembl <- useEnsembl(biomart = hosts[i], host = names(hosts)[i])
+                                datasets <- searchDatasets(ensembl, pattern = species)$dataset
+                                return(datasets)
+                })
+            while (is(datasets, "try-error"))
+            {
+                datasets <- try({
+                                ensembl <- useEnsembl(biomart = hosts[i], host = names(hosts)[i])
+                                datasets <- searchDatasets(ensembl, pattern = species)$dataset
+                                return(datasets)
+                })
+             }
+            
             is_ds <- grepl(paste0(species, "_"), datasets)
             if (any(is_ds))
             {
                 dataset <- datasets[is_ds]
-                ensembl <- useMart(biomart = hosts[i],
+                id_symbol <- try({
+                    ensembl <- useMart(biomart = hosts[i],
                                    dataset = dataset,
                                    host = names(hosts)[i])
-                id_symbol <- select(ensembl, keys = gene_ids,
-                       columns = c(id_type,'external_gene_name'),
-                       keytype = id_type)
-                
+                   id_symbol <- select(ensembl, keys = gene_ids,
+                                       columns = c(id_type,'external_gene_name'),
+                                       keytype = id_type)
+                    return(id_symbol)
+                })
+                while (is(id_symbol, "try-error"))
+                {
+                    id_symbol <- try({
+                    ensembl <- useMart(biomart = hosts[i],
+                                   dataset = dataset,
+                                   host = names(hosts)[i])
+                    id_symbol <- select(ensembl, keys = gene_ids,
+                                       columns = c(id_type,'external_gene_name'),
+                                       keytype = id_type)
+                     return(id_symbol)
+                     })
+                  }
                 unnamed_geneID_symbol <- 
                     data.frame(id = gene_ids[!gene_ids %in% id_symbol[ ,1]], 
                                external_gene_name = "NA")
