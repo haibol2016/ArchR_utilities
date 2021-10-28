@@ -273,7 +273,9 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
 
 ## create genomeAnnotation using a BSgenome and an optional blacklist in the 
 ## BED format
-## It is better to filter chrM, chrY, and chromosomes without TSSs/genes at all
+## It is preferrable to filter chrM, chrY, and chromosomes without TSSs/genes at all,
+## so to avoid empty GRanges for TSS and genes after splitting by seqnames when create ArrowFiles
+## which cause errors.
 create_ArchR_genomeannotation <- function(BSgenome, out_dir, 
                                           blacklist_bed = NULL, 
                                           blacklist_hasheader = FALSE,
@@ -293,7 +295,8 @@ create_ArchR_genomeannotation <- function(BSgenome, out_dir,
                          start = 1,
                          end = unname(chrom_len))
     chromSizes <- makeGRangesFromDataFrame(chr_df)
-    
+    all_seqlevels <- seqlevels(chromSizes)
+        
     if (!is.null(blacklist_bed))
     {
         if (grepl(".bed.gz$", blacklist_bed))
@@ -319,6 +322,18 @@ create_ArchR_genomeannotation <- function(BSgenome, out_dir,
         colnames(blacklist_df)[1:3] <- c("seqnames", "start", "end")
         blacklist <- makeGRangesFromDataFrame(blacklist_df, 
                                               starts.in.df.are.0based = TRUE)
+        if (any(!seqlevels(blacklist) %in% all_seqlevels))
+        {
+            stop("The chromosome names of the blacklist are completely different from those of the BSgenome\n.",
+                 "Please double check the blacklist.")
+        }
+    }
+    if (filter)
+    {
+        kept_seqlevels <- all_seqlevels[!all_seqlevels %in% filterChr]
+        ## filter blacklist
+        seqlevels(blacklist, pruning.mode="coarse") <- kept_seqlevels
+        seqlevels(chromSizes, pruning.mode="coarse") <- kept_seqlevels
     }
     genomeAnnotation <- createGenomeAnnotation(genome = BSgenome,
                                                chromSizes = chromSizes,
