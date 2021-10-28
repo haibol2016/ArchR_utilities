@@ -78,6 +78,10 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
                       comment.char = "#", quote = "")
     close(in_gtf)
     gtf <- gtf[gtf[, 3] == "gene", 9]
+    if (nrow(gtf) < 1)
+    {
+        stop("There is not entries for genes in the gtf! ", "Please fix your gtf"!)
+    }
     null <- lapply(gtf, function(.x){
         if (grepl("gene_id", .x)){
             gene_id <- gsub('gene_id\\s+"([^".]+).+', 
@@ -86,6 +90,12 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
             {
                 gene_symbol <- gsub('.+?gene_name\\s+"([^".]+).+', 
                                     "\\1", .x, perl = TRUE)
+                if (grepl("^ENS.*?G\\d+", gene_symbol, perl = TRUE) ||
+                    grepl("^ENS.*?T\\d+", gene_symbol, perl = TRUE) ||
+                    grepl("^\\d+$", gene_symbol, perl = TRUE))
+                {
+                    gene_symbol <- "NA"
+                }    
             } else {
                 gene_symbol <- "NA"
             }
