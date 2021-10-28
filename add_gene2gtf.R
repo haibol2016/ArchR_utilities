@@ -21,7 +21,7 @@ add_gene2gtf <- function(gtf, out_dir = ".")
         gene$source <- tx_GR$source
         gene$gene_id <- tx_GR$gene_id
         gene$gene_name <- tx_GR$gene_name
-        append(gene, this_list[[1]])
+        append(gene, .x)
     })
     fixed_gtf <- unlist(fixed_gtf_GRL)
     gtf_file <- file.path(out_dir, 
