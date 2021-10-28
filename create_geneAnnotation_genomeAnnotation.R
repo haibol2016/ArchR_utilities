@@ -1,7 +1,7 @@
 library("GenomicFeatures")
 library("BSgenome.Hsapiens.Ensembl.GRCh38")
 library("plyranges")
-library("ArchR")
+library("S4Vectors")
 library("tibble")
 library("dplyr")
 library("biomaRt")
@@ -258,15 +258,8 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
         TSS <- TSS[-c(TSS_out_of_bound_index)]
     }
     
-    ## Create geneAnnotation
-    geneAnnotation <- createGeneAnnotation(
-        genome = NULL,
-        TxDb = NULL,
-        OrgDb = NULL,
-        genes = genes,
-        exons = exons,
-        TSS = TSS,
-        annoStyle = "ENSEMBL")
+    ## don't need ArchR createGeneAnnotation() function
+    SimpleList(genes = genes, exons = exons, TSS = TSS)
     saveRDS(geneAnnotation, file = file.path(out_dir, "geneAnnotation.RDS"))
     geneAnnotation
 }
@@ -335,11 +328,9 @@ create_ArchR_genomeannotation <- function(BSgenome, out_dir,
         seqlevels(blacklist, pruning.mode="coarse") <- kept_seqlevels
         seqlevels(chromSizes, pruning.mode="coarse") <- kept_seqlevels
     }
-    genomeAnnotation <- createGenomeAnnotation(genome = BSgenome,
-                                               chromSizes = chromSizes,
-                                               blacklist = blacklist,
-                                               filter = filter,
-                                               filterChr = filterChr)
+    
+    # don't need ArchR createGenomeAnnotation() function
+    SimpleList(genome = BSgenome@pkgname, chromSizes = chromSizes, blacklist = blacklist)
     saveRDS(genomeAnnotation, file = file.path(out_dir, 
                                                "genomeAnnotation.RDS"))
     genomeAnnotation
