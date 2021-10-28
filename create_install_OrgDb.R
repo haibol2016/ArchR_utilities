@@ -12,7 +12,7 @@ create_install_OrgDb <- function(geneID_symbom_df,
              correct!")
     }
     id_type <- {if (all(grepl("^ENS.*?G\\d+", geneID_symbom_df[, 1], perl = TRUE)))
-    {"ENAEMBL"} else if (all(grepl("^ENS.*?G\\d+", 
+    {"ENAEMBL"} else if (all(grepl("^\\d+$", 
                                        geneID_symbom_df[, 1], perl = TRUE)))
     {"GENEID"} else {"unkown"}}
     
@@ -33,7 +33,7 @@ create_install_OrgDb <- function(geneID_symbom_df,
     }}
     if (!dir.exists(package_dest_dir))
     {
-        dir.create(package_dest_dir)
+        dir.create(package_dest_dir, recursive = TRUE)
     }
     
     makeOrgPackage(gene_info = fSym, 
