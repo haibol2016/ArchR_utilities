@@ -80,7 +80,7 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
     gtf <- gtf[gtf[, 3] == "gene", 9]
     if (nrow(gtf) < 1)
     {
-        stop("There is not entries for genes in the gtf! ", "Please fix your gtf"!)
+        stop("There is not entries for genes in the gtf! ", "Please fix your gtf!")
     }
     null <- lapply(gtf, function(.x){
         if (grepl("gene_id", .x)){
