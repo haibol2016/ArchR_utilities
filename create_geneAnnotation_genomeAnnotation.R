@@ -112,7 +112,7 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
                 else {"unknown"}}
     if (id_type == "unknown")
     {
-       stop("Unkown gene ID type!")
+       stop("Unknown gene ID type!")
     } else if (id_type == "gene_name"){
        id_symbol <- data.frame(gene_id = gene_id, symbol = gene_id)
        return(id_symbol)
@@ -195,7 +195,7 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
 {
     if (is.null(TxDb) || !is(TxDb, "TxDb"))
     {
-        stop(TxDb, " must ba a TxDb object!")
+        stop("TxDb must ba a TxDb object!")
     }
     if (missing(geneID2Symbol) || missing(out_dir))
     {
@@ -335,7 +335,7 @@ create_ArchR_genomeannotation <- function(BSgenome = NULL,
             any(!is.numeric(blacklist_df[,2])) || 
             any(!is.numeric(blacklist_df[,3])))
         {
-            stop(blacklist_bed, " is not a valid BED file!")
+            stop("blacklist_bed is not a valid BED file!")
         }
         
         colnames(blacklist_df)[1:3] <- c("seqnames", "start", "end")
