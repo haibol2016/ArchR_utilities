@@ -14,7 +14,7 @@ add_gene2gtf <- function(gtf, out_dir = ".", gz_out = TRUE)
     ## split into GRangesList, suppose all gene_ids are unique
     gtf_GRL <- split(gtf_GR, mcols(gtf_GR)$gene_id)
     fixed_gtf_GRL <- endoapply(gtf_GRL, function(.x){
-        gene <- reduce(.x, ignore.strand=FALSE)
+        gene <- reduce(.x, ignore.strand = FALSE)
         tx_GR <- .x[.x$type == "transcript"][1]
         gene$type <- "gene" 
         gene$source <- tx_GR$source
