@@ -74,15 +74,15 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
     }
     require("collections")
     id2symbol_dict <- ordered_dict()
-    gtf <- read.delim(in_gtf, header = FALSE, as.is = TRUE,
+    gtf_full <- read.delim(in_gtf, header = FALSE, as.is = TRUE,
                       comment.char = "#", quote = "")
     close(in_gtf)
-    gtf <- gtf[gtf[, 3] =="gene", 9]
-    if (nrow(gtf) < 1)
+    gtf <- gtf_full[gtf_full[, 3] =="gene", 9]
+    if (length(gtf) < 1)
     {
         message("There is not entries for genes in the gtf!\n", "Use transcript entries!")
-        gtf <- gtf[gtf[, 3] =="transcript", 9]
-        if (nrow(gtf) < 1) {stop("gtf is malformed! please doulbe check it!")}
+        gtf <- gtf_full[gtf_full[, 3] =="transcript", 9]
+        if (length(gtf) < 1) {stop("gtf is malformed! please doulbe check it!")}
     }
     null <- lapply(gtf, function(.x){
         if (grepl("gene_id", .x)){
