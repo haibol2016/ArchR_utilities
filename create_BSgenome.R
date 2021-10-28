@@ -31,10 +31,10 @@ generate_multifasta <- function(path_single_fasta_genome, out_dir)
         if (grepl("^>", line))
         {
             f <- gzfile(file.path(out_dir, 
-                                  gsub("^>(chr)?([^\\s]+).+", "chr\\2.fa.gz",
+                                  gsub("^>(chr)?([^\\s]+).*", "chr\\2.fa.gz",
                                        line, perl = TRUE)),
                         "w")
-            writeLines(gsub("^>(chr)?([^\\s]+).+",">chr\\2", line, perl = TRUE), f)
+            writeLines(gsub("^>(chr)?([^\\s]+).*",">chr\\2", line, perl = TRUE), f)
         } else {
             writeLines(line, f)
         }
