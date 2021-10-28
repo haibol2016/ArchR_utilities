@@ -1,13 +1,16 @@
+library(BSgenome)
+library(devtools)
+
 ## get per-chromosome fasta file and compressed in .gz format:
 ## chr1.fa.gz, chr2.fa.gz,...
 generate_multifasta <- function(path_single_fasta_genome, out_dir)
 {
-    if (missing(path_single_fasta_genome) | missing(out_dir))
+    if (missing(path_single_fasta_genome) || missing(out_dir))
     {
         stop("path_single_fasta_genome and out_dir are required!")
     }
     if (!file.exists(path_single_fasta_genome)){
-        stop(path_single_fasta_genome, " doesn't exists!")
+        stop("path_single_fasta_genome doesn't exists!")
     }
     if (!dir.exists(out_dir))
     {
@@ -54,9 +57,9 @@ generate_seed_file <- function(path_to_multifasta,
                                source = "Ensembl", 
                                version = "1.0.0")
 {
-    if (missing(path_to_multifasta) | missing(latin_name) |
-        missing(common_name) | missing(genome_build) | 
-        missing(seed_file_name) | missing(fasta_url))
+    if (missing(path_to_multifasta) || missing(latin_name) ||
+        missing(common_name) || missing(genome_build) || 
+        missing(seed_file_name) || missing(fasta_url))
     {
         stop("All arguments except source and version are required!")
     }
@@ -68,6 +71,11 @@ generate_seed_file <- function(path_to_multifasta,
     {
         stop("There is no multiple fasta files in the directory ", 
              path_to_multifasta, "!")
+    }
+    seed_dir <- dirname(path)
+    if (!dir.extists(seed_dir))
+    {
+        dir.create(seed_dir, recursive = TRUE)
     }
     sink(seed_file_name)
     BSgenomeObjname <- gsub("^(.).*\\s+(.+)", "\\1\\2", latin_name)
@@ -101,30 +109,45 @@ generate_seed_file <- function(path_to_multifasta,
     c(package_name, seed_file_name)
 }
 
-mulifasta_dir <- 
-    generate_multifasta(path_single_fasta_genome =
-                            "refdata-cellranger-arc-GRCh38-2020-A-2.0.0/fasta/genome.fa", 
-                        out_dir = "GRCh38/chromosomes/")
-package_seed <- generate_seed_file(path_to_multifasta = "GRCh38/chromosomes/", 
-                               latin_name = "Homo sapiens", 
-                               common_name = "Human", 
-                               genome_build = "GRCh38", 
-                               seed_file_name = "GRCh38.BSgenome.seed.txt", 
-                               fasta_url = "http://ftp.ensembl.org/pub/release-98/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz", 
-                               source = "Ensembl", 
-                               version = "1.0.0")
+forge_install_BSgenome <- function(seed_file = NULL, 
+                                   dest_dir = ".")
+{
+    if (is.null(seed_file))
+    {
+        stop("seed_file are required!")
+    }
+    if (!dir.exists(dest_dir))
+    {
+        dir.create(dest_dir, recursive = TRUE)
+    }
+    pkgname <- gsub("Package:\\s*([^\\s]+)", 
+                    "\\1",
+                    trimws(readLines(seed_file, n =1)))
+    
+    ## crate a BSgenome package from a seed file
+    forgeBSgenomeDataPkg(seed_file, destdir = dest_dir)
+    
+    ## check, build and install package
+    ## OR install using command line
+    # R CMD build BSgenome.Hsapiens.Ensembl.GRCh38
+    # R CMD check BSgenome.Hsapiens.Ensembl.GRCh38_1.0.0.tar.gz
+    # R CMD INSTALL BSgenome.Hsapiens.Ensembl.GRCh38_1.0.0.tar.gz
+    devtools::check(file.path(dest_dir, pkgname))
+    devtools::build(file.path(dest_dir, pkgname))
+    devtools::install(file.path(dest_dir, pkgname))
+}
 
-library(BSgenome)
-library(devtools)
-## crate BSgenome package
-forgeBSgenomeDataPkg(package_seed[2], destdir = ".")
 
-## check, build and install package
-devtools::check(package_seed[1])
-devtools::build(package_seed[1])
-devtools::install(package_seed[1])
-
-## OR install using command line
-# R CMD build BSgenome.Hsapiens.Ensembl.GRCh38
-# R CMD check BSgenome.Hsapiens.Ensembl.GRCh38_1.0.0.tar.gz
-# R CMD INSTALL BSgenome.Hsapiens.Ensembl.GRCh38_1.0.0.tar.gz
+# mulifasta_dir <- 
+#     generate_multifasta(path_single_fasta_genome =
+#                             "refdata-cellranger-arc-GRCh38-2020-A-2.0.0/fasta/genome.fa", 
+#                         out_dir = "GRCh38/chromosomes/")
+# package_seed <- generate_seed_file(path_to_multifasta = "GRCh38/chromosomes/", 
+#                                    latin_name = "Homo sapiens", 
+#                                    common_name = "Human", 
+#                                    genome_build = "GRCh38", 
+#                                    seed_file_name = "GRCh38.BSgenome.seed.txt", 
+#                                    fasta_url = "http://ftp.ensembl.org/pub/release-98/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz", 
+#                                    source = "Ensembl", 
+#                                    version = "1.0.0")
+# forge_install_BSgenome(package_seed[2])
