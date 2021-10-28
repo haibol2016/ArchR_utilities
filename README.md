@@ -1,5 +1,6 @@
 # ArchR_utilies
 R functions for a few common purposes:  
+- amend UCSC GTF files by adding entries for genes
 - split a multi-fasta file for a genome assembly into per-chromosome single fasta files
 - automatically generate a seed file for forging a BSgenome package
 - forge a BSgenome package from a directory containing single fasta files for individual chromosomes of a genome assembly using the seed file
