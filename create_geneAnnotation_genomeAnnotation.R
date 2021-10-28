@@ -221,10 +221,9 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
 ## It is better to filter chrM, chrY for mammals, chrM for other animal and fungi, chrM and chrPltd for plants
 create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL, 
                                                  geneID2Symbol,
-                                                 flank = 2000,
-                                                 promoterRange = c(upstream = 2000, downstream = 100),
-                                                 filter = TRUE,
-                                                 filterChr = c("chrM"),
+                                                 flank = 2000, ## prevent TSS expanded 2 Kb in both directions from being out of range
+                                                 promoterRange = c(upstream = 2000, downstream = 100), ## prevent extended promoters from being out of range
+                                                 filterChr = c("chrM", "chrY", "chrMT", "chrPltd"),
                                                  out_dir)
 {
     if (is.null(TxDb) || !is(TxDb, "TxDb"))
@@ -329,7 +328,7 @@ create_ArchR_genomeannotation <- function(BSgenome = NULL,
                                           out_dir = NULL, 
                                           blacklist_bed = NULL, 
                                           blacklist_hasheader = FALSE,
-                                          filterChr = c("chrM"))
+                                          filterChr = c("chrM", "chrY", "chrMT", "chrPltd"))
 {
     if (missing(BSgenome) || is.null(BSgenome) || !is(BSgenome, "BSgenome"))
     {
@@ -373,30 +372,24 @@ create_ArchR_genomeannotation <- function(BSgenome = NULL,
             any(!is.numeric(blacklist_df[,2])) || 
             any(!is.numeric(blacklist_df[,3])))
         {
-            stop("blacklist_bed is not a valid BED file!")
+            stop("blacklist_bed is not a valid BED file!\n", 
+                 "Please make sure the chromosome names of the blacklist are a subset of those of the BSgenome.")
         }
         
         colnames(blacklist_df)[1:3] <- c("seqnames", "start", "end")
         blacklist <- makeGRangesFromDataFrame(blacklist_df, 
                                               starts.in.df.are.0based = TRUE)
-        if (any(!seqlevels(blacklist) %in% all_seqlevels))
-        {
-            stop("The chromosome names of the blacklist are completely different from those of the BSgenome\n.",
-                 "Please double check the blacklist.")
-        }
     }
-    if (filter)
+    
+    ## filter extra chromosomes/scaffolds so no ArrowFile generated for them
+    tss_chr <- unique(seqnames(geneAnnotation$TSS))
+    if (!is.null(filterChr) && !is.na(filterChr))
     {
-        tss_chr <- unique(seqnames(geneAnnotation$TSS))
-        ## filter extra chromosomes/scaffolds so no ArrowFile generated for them
-        if (!is.null(filterChr) && !is.na(filterChr))
-        {
-            tss_chr <- tss_chr[!tss_chr %in% filterChr]
-        }
-        ## filter blacklist
-        seqlevels(blacklist, pruning.mode="coarse") <- tss_chr
-        seqlevels(chromSizes, pruning.mode="coarse") <- tss_chr
+        tss_chr <- tss_chr[!tss_chr %in% filterChr]
     }
+    ## filter blacklist and chromSizes
+    seqlevels(blacklist, pruning.mode="coarse") <- tss_chr
+    seqlevels(chromSizes, pruning.mode="coarse") <- tss_chr
     
     # don't need ArchR createGenomeAnnotation() function
     SimpleList(genome = BSgenome@pkgname, chromSizes = chromSizes, blacklist = blacklist)
