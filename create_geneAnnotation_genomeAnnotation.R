@@ -82,7 +82,7 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
     {
         message("There is not entries for genes in the gtf!\n", "Use transcript entries!")
         gtf <- gtf[gtf[, 3] =="transcript", 9]
-        if (nrow(gtf) < 1) { stop("gtf is malformed! please doulbe check it!")
+        if (nrow(gtf) < 1) {stop("gtf is malformed! please doulbe check it!")}
     }
     null <- lapply(gtf, function(.x){
         if (grepl("gene_id", .x)){
@@ -376,4 +376,3 @@ create_ArchR_genomeannotation <- function(BSgenome = NULL,
 # gene_symbol <- 
 #    get_geneID_symbol(gtf = "refdata-cellranger-arc-GRCh38-2020-A-2.0.0/genes/genes.gtf.gz", 
 #                      species_latin_name = "Homo sapiens")
-
