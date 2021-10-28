@@ -31,7 +31,7 @@ forgeTxDb <- function(BSgenome, gtf, out_TxDb_dir)
              "which should with an extension .gtf, or .gtf.gz")
     }
     if (!dir.exists(out_TxDb_dir)){
-        dir.create(out_TxDb_dir)
+        dir.create(out_TxDb_dir, recursive = TRUE)
     }
     chrom_len <- seqlengths(BSgenome)
     is_circular <- names(chrom_len) %in% c("chrM", "chrMT", "MT",
@@ -208,7 +208,7 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
     }
     if (!dir.exists(out_dir))
     {
-        dir.create(out_dir)
+        dir.create(out_dir, recursive = TRUE)
     }
     ## geneID2Symbol: col1: gene_id; col2: gene_symbol
     symbol <- geneID2Symbol[, 2]
@@ -309,6 +309,10 @@ create_ArchR_genomeannotation <- function(BSgenome = NULL,
     {
         stop("out_dir is required!")
     }
+    if (!dir.exists(out_dir))
+    {
+        dir.create(out_dir, recursive = TRUE)
+    }
     chrom_len <- seqlengths(BSgenome)
     chr_df <- data.frame(seqnames = names(chrom_len),
                          start = 1,
@@ -367,8 +371,6 @@ create_ArchR_genomeannotation <- function(BSgenome = NULL,
     genomeAnnotation
 }
 
-
-## call the function
 # gene_symbol <- 
 #    get_geneID_symbol(gtf = "refdata-cellranger-arc-GRCh38-2020-A-2.0.0/genes/genes.gtf.gz", 
 #                      species_latin_name = "Homo sapiens")
