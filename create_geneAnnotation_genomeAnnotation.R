@@ -308,8 +308,13 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
         TSS <- TSS[-c(TSS_out_of_bound_index)]
     }
     
+    ## drop unused seqlevels
+    seqlevels(genes) <- seqlevelsInUse(genes)
+    seqlevels(exons) <- seqlevelsInUse(exons)
+    seqlevels(TSS) <- seqlevelsInUse(TSS)
+    
     ## don't need ArchR createGeneAnnotation() function
-    SimpleList(genes = genes, exons = exons, TSS = TSS)
+    geneAnnotation <- SimpleList(genes = genes, exons = exons, TSS = TSS)
     saveRDS(geneAnnotation, file = file.path(out_dir, "geneAnnotation.RDS"))
     geneAnnotation
 }
@@ -378,17 +383,19 @@ create_ArchR_genomeannotation <- function(BSgenome = NULL,
     }
     
     ## filter extra chromosomes/scaffolds so no ArrowFile generated for them
-    tss_chr <- unique(seqnames(geneAnnotation$TSS))
+    tss_chr <- unique(as.character(seqnames(geneAnnotation$TSS)))
     if (!is.null(filterChr) && !is.na(filterChr))
     {
         tss_chr <- tss_chr[!tss_chr %in% filterChr]
     }
     ## filter blacklist and chromSizes
     seqlevels(blacklist, pruning.mode="coarse") <- tss_chr
+    seqlevels(blacklist) <- seqlevelsInUse(blacklist)
     seqlevels(chromSizes, pruning.mode="coarse") <- tss_chr
+    seqlevels(chromSizes) <- seqlevelsInUse(chromSizes)
     
     # don't need ArchR createGenomeAnnotation() function
-    SimpleList(genome = BSgenome@pkgname, chromSizes = chromSizes, blacklist = blacklist)
+    genomeAnnotation <- SimpleList(genome = BSgenome@pkgname, chromSizes = chromSizes, blacklist = blacklist)
     saveRDS(genomeAnnotation, file = file.path(out_dir, 
                                                "genomeAnnotation.RDS"))
     genomeAnnotation
