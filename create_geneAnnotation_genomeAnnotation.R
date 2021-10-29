@@ -196,9 +196,8 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
             colnames(id_symbol) <- c("gene_id", "symbol")
             return(id_symbol)
         } else {
-            message("No gene symbols are get from Biomart!\n",
+            stop("No gene symbols are get from Biomart!\n",
                     "Check your GTF file!")
-            return(NULL)
         }
     } else {
         id2symbol <- data.frame(gene_id = unlist(id2symbol_dict$keys()),
