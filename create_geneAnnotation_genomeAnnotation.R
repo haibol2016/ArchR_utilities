@@ -136,17 +136,18 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
         ## try different biomart: animal, plant, fungi, metazona
         hosts <- c("https://www.ensembl.org/", "https://plants.ensembl.org/",
                    "https://fungi.ensembl.org/", "https://metazoa.ensembl.org/")
-       hosts <- try({hosts <- sapply(hosts, function(.x){
+        marts <- try({marts <- sapply(hosts, function(.x){
                                  listMarts(host = .x)$biomart[1]})
-                     return(hosts)
+                     return(marts)
                    })
-        while (is(hosts, "try-error"))
+        while (is(marts, "try-error"))
         {
-            hosts <- try({hosts <- sapply(hosts, function(.x){
+            marts <- try({marts <- sapply(hosts, function(.x){
                                      listMarts(host = .x)$biomart[1]})
-                          return(hosts)
+                          return(marts)
                         })
         }
+        hosts <- marts
         id_symbol <- data.frame()
         for (i in seq_along(hosts))
         {
