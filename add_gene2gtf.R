@@ -1,4 +1,7 @@
 library("rtracklayer")
+library("plyranges")
+library("GenomicRanges")
+library("future.apply")
 
 ## Amend UCSC GTF files by adding gene entries
 add_gene2gtf <- function(gtf, out_dir = ".", gz_out = TRUE)
@@ -13,16 +16,20 @@ add_gene2gtf <- function(gtf, out_dir = ".", gz_out = TRUE)
     
     ## split into GRangesList, suppose all gene_ids are unique
     gtf_GRL <- split(gtf_GR, mcols(gtf_GR)$gene_id)
-    fixed_gtf_GRL <- endoapply(gtf_GRL, function(.x){
-        gene <- reduce(.x, ignore.strand = FALSE)
-        tx_GR <- .x[.x$type == "transcript"][1]
+    
+    ## using parallel computing
+    plan(multisession)
+    fixed_gtf <- do.call("rbind", future_lapply(gtf_GRL, function(.x){
+        tx_GR <- .x[.x$type == "transcript"]
+        gene <- reduce(tx_GR, ignore.strand = FALSE)
         gene$type <- "gene" 
-        gene$source <- tx_GR$source
-        gene$gene_id <- tx_GR$gene_id
-        gene$gene_name <- tx_GR$gene_name
-        append(gene, .x)
-    })
-    fixed_gtf <- unlist(fixed_gtf_GRL)
+        tx_GR1 <- tx_GR[1]
+        gene$source <- tx_GR1$source
+        gene$gene_id <- tx_GR1$gene_id
+        gene$gene_name <- tx_GR1$gene_name
+        data.frame(append(gene, .x))
+    })) %>% plyranges::as_granges()
+    
     out_filename <- paste0("amended.", Sys.Date(),".", 
                            gsub(".(gz|bz2|xz)$", "", basename(gtf)))
     if (gz_out)
