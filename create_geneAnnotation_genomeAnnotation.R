@@ -129,13 +129,13 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
                    "https://fungi.ensembl.org/", "https://metazoa.ensembl.org/")
         marts <- try({marts <- sapply(hosts, function(.x){
                                  listMarts(host = .x)$biomart[1]})
-                     return(marts)
+                      marts
                    })
         while (is(marts, "try-error"))
         {
             marts <- try({marts <- sapply(hosts, function(.x){
                                      listMarts(host = .x)$biomart[1]})
-                          return(marts)
+                          marts
                         })
         }
         hosts <- marts
@@ -143,16 +143,16 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
         for (i in seq_along(hosts))
         {
             datasets <- try({
-                                ensembl <- useEnsembl(biomart = hosts[i], host = names(hosts)[i])
-                                datasets <- searchDatasets(ensembl, pattern = species)$dataset
-                                return(datasets)
+                ensembl <- useEnsembl(biomart = hosts[i], host = names(hosts)[i])
+                datasets <- searchDatasets(ensembl, pattern = species)$dataset
+                datasets
                 })
             while (is(datasets, "try-error"))
             {
                 datasets <- try({
                                 ensembl <- useEnsembl(biomart = hosts[i], host = names(hosts)[i])
                                 datasets <- searchDatasets(ensembl, pattern = species)$dataset
-                                return(datasets)
+                                datasets
                 })
              }
             
@@ -164,10 +164,10 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
                     ensembl <- useMart(biomart = hosts[i],
                                    dataset = dataset,
                                    host = names(hosts)[i])
-                   id_symbol <- select(ensembl, keys = gene_ids,
+                   id_symbol <- biomaRt::select(ensembl, keys = gene_ids,
                                        columns = c(id_type,'external_gene_name'),
                                        keytype = id_type)
-                    return(id_symbol)
+                   id_symbol
                 })
                 while (is(id_symbol, "try-error"))
                 {
@@ -175,16 +175,21 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
                         ensembl <- useMart(biomart = hosts[i],
                                            dataset = dataset,
                                            host = names(hosts)[i])
-                        id_symbol <- select(ensembl, keys = gene_ids,
+                        id_symbol <- biomaRt::select(ensembl, keys = gene_ids,
                                             columns = c(id_type,'external_gene_name'),
                                             keytype = id_type)
-                        return(id_symbol)
+                        id_symbol
                      })
                   }
+                
+                # genes not in database
                 unnamed_geneID_symbol <- 
-                    data.frame(id = gene_ids[!gene_ids %in% id_symbol[ ,1]], 
+                    data.frame(id = gene_ids[!gene_ids %in% id_symbol[, 1]], 
                                external_gene_name = "NA")
                 colnames(unnamed_geneID_symbol)[1] <- id_type
+                
+                # no gene_name genes
+                id_symbol$external_gene_name <- ifelse(id_symbol$external_gene_name =="", "NA", id_symbol$external_gene_name)
                 id_symbol <- rbind(id_symbol, unnamed_geneID_symbol)
                 id_symbol$external_gene_name <- paste(id_symbol[, 2],
                                                       id_symbol[, 1],
