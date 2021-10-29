@@ -21,15 +21,6 @@ forgeTxDb <- function(BSgenome, gtf, out_TxDb_dir)
     if (!file.exists(gtf)){
         stop("gtf doesn't exist!")
     }
-    if (grepl(".gtf.gz$", gtf))
-    {
-        in_gtf <- gzfile(gtf, open ="rt")
-    } else if (grepl(".gtf$", gtf)) {
-        in_gtf <- file(gtf, open = "r")
-    } else {
-        stop("It seems the GTF file is not a GTF file ",
-             "which should with an extension .gtf, or .gtf.gz")
-    }
     if (!dir.exists(out_TxDb_dir)){
         dir.create(out_TxDb_dir, recursive = TRUE)
     }
@@ -40,14 +31,13 @@ forgeTxDb <- function(BSgenome, gtf, out_TxDb_dir)
                             length = unname(chrom_len),
                             is_circular = is_circular)
     genome_metadata <- metadata(BSgenome)
-    TxDb <- makeTxDbFromGFF(file = in_gtf,
+    TxDb <- makeTxDbFromGFF(file = gtf,
                             format = "gtf",
                             dataSource = genome_metadata$provider,
                             organism = genome_metadata$organism,
                             taxonomyId = NA,
                             chrominfo = chrominfo,
                             miRBaseBuild = NA)
-    close(in_gtf)
     TxDb_file <- file.path(out_TxDb_dir, 
                            paste0(genome_metadata$genome, ".TxDb.sqlite"))
     saveDb(TxDb, file = TxDb_file)
@@ -73,6 +63,7 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
              "which should with an extension .gtf, or .gtf.gz")
     }
     require("collections")
+    ## this can also be done using rtracklayer::import
     id2symbol_dict <- ordered_dict()
     gtf_full <- read.delim(in_gtf, header = FALSE, as.is = TRUE,
                       comment.char = "#", quote = "")
@@ -181,13 +172,13 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
                 while (is(id_symbol, "try-error"))
                 {
                     id_symbol <- try({
-                    ensembl <- useMart(biomart = hosts[i],
-                                   dataset = dataset,
-                                   host = names(hosts)[i])
-                    id_symbol <- select(ensembl, keys = gene_ids,
-                                       columns = c(id_type,'external_gene_name'),
-                                       keytype = id_type)
-                     return(id_symbol)
+                        ensembl <- useMart(biomart = hosts[i],
+                                           dataset = dataset,
+                                           host = names(hosts)[i])
+                        id_symbol <- select(ensembl, keys = gene_ids,
+                                            columns = c(id_type,'external_gene_name'),
+                                            keytype = id_type)
+                        return(id_symbol)
                      })
                   }
                 unnamed_geneID_symbol <- 
