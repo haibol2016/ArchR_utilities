@@ -353,6 +353,16 @@ create_ArchR_genomeannotation <- function(BSgenome = NULL,
                          end = unname(chrom_len))
     chromSizes <- makeGRangesFromDataFrame(chr_df)
     all_seqlevels <- seqlevels(chromSizes)
+    
+    ## filter extra chromosomes/scaffolds so no ArrowFile generated for them
+    tss_chr <- unique(as.character(seqnames(geneAnnotation$TSS)))
+    if (!is.null(filterChr) && !is.na(filterChr))
+    {
+        tss_chr <- tss_chr[!tss_chr %in% filterChr]
+    }
+    ## filter chromSizes
+    seqlevels(chromSizes, pruning.mode="coarse") <- tss_chr
+    seqlevels(chromSizes) <- seqlevelsInUse(chromSizes)
         
     if (!is.null(blacklist_bed))
     {
@@ -376,23 +386,13 @@ create_ArchR_genomeannotation <- function(BSgenome = NULL,
             stop("blacklist_bed is not a valid BED file!\n", 
                  "Please make sure the chromosome names of the blacklist are a subset of those of the BSgenome.")
         }
-        
         colnames(blacklist_df)[1:3] <- c("seqnames", "start", "end")
         blacklist <- makeGRangesFromDataFrame(blacklist_df, 
                                               starts.in.df.are.0based = TRUE)
+        ## filter blacklist
+        seqlevels(blacklist, pruning.mode="coarse") <- tss_chr
+        seqlevels(blacklist) <- seqlevelsInUse(blacklist)
     }
-    
-    ## filter extra chromosomes/scaffolds so no ArrowFile generated for them
-    tss_chr <- unique(as.character(seqnames(geneAnnotation$TSS)))
-    if (!is.null(filterChr) && !is.na(filterChr))
-    {
-        tss_chr <- tss_chr[!tss_chr %in% filterChr]
-    }
-    ## filter blacklist and chromSizes
-    seqlevels(blacklist, pruning.mode="coarse") <- tss_chr
-    seqlevels(blacklist) <- seqlevelsInUse(blacklist)
-    seqlevels(chromSizes, pruning.mode="coarse") <- tss_chr
-    seqlevels(chromSizes) <- seqlevelsInUse(chromSizes)
     
     # don't need ArchR createGenomeAnnotation() function
     genomeAnnotation <- SimpleList(genome = BSgenome@pkgname, chromSizes = chromSizes, blacklist = blacklist)
