@@ -107,7 +107,7 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
     {
        stop("Unknown gene ID type!")
     } else if (id_type == "gene_name"){
-       id_symbol <- data.frame(gene_id = gene_id, symbol = gene_id)
+       id_symbol <- data.frame(gene_id = gene_ids, symbol = gene_ids)
        return(id_symbol)
     }
     
