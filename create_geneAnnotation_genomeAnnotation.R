@@ -393,7 +393,9 @@ create_ArchR_genomeannotation <- function(BSgenome = NULL,
         ## filter blacklist
         seqlevels(blacklist, pruning.mode="coarse") <- tss_chr
         seqlevels(blacklist) <- seqlevelsInUse(blacklist)
-    }
+    } else {
+        black_list <- NULL
+    }    
     
     # don't need ArchR createGenomeAnnotation() function
     genomeAnnotation <- SimpleList(genome = BSgenome@pkgname, chromSizes = chromSizes, blacklist = blacklist)
