@@ -249,8 +249,8 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
     
     ## GRanges for genes
     genes <- GenomicFeatures::genes(TxDb) %>%
-        plyranges::remove_names() %>% 
-        plyranges::mutate(symbol = symbol[gene_id]) 
+        plyranges::remove_names() 
+    genes$symbol <- symbol[genes$gene_id]  # more stable
     genes <- sort(sortSeqlevels(genes), ignore.strand = TRUE)
     
     ## get all transcripts
@@ -268,8 +268,9 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
                             by = "tx",
                             use.names = TRUE)) %>%
         plyranges::mutate(tx_name = names(.)) %>%
-        plyranges::remove_names() %>%
-        plyranges::mutate(gene_id = tx_gene[tx_name]) %>%
+        plyranges::remove_names()
+    exons$gene_id <- tx_gene[exons$tx_name]
+    exons <- exons %>%
         plyranges::filter(!is.na(gene_id)) %>%
         plyranges::mutate(symbol = symbol[gene_id]) %>%
         plyranges::select(-c("exon_id", "exon_name", "exon_rank", 
