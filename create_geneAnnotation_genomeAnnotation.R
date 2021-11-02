@@ -81,7 +81,7 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
                             "\\1", .x, perl = TRUE)
             if (grepl("gene_name", .x))
             {
-                gene_symbol <- gsub('.+?gene_name\\s+"([^".]+).+', 
+                gene_symbol <- gsub('.+?gene_name\\s+"([^"]+).*', 
                                     "\\1", .x, perl = TRUE)
                 if (grepl("^ENS.*?G\\d+", gene_symbol, perl = TRUE) ||
                     grepl("^ENS.*?T\\d+", gene_symbol, perl = TRUE) ||
