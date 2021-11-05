@@ -271,8 +271,9 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
         plyranges::remove_names()
     exons$gene_id <- tx_gene[exons$tx_name]
     exons <- exons %>%
-        plyranges::filter(!is.na(gene_id)) %>%
-        plyranges::mutate(symbol = symbol[gene_id]) %>%
+        plyranges::filter(!is.na(gene_id))
+    exons$symbol <-  symbol[exons$gene_id]
+    exons <- exons %>%
         plyranges::select(-c("exon_id", "exon_name", "exon_rank", 
                              "gene_id", "tx_name"))
     exons <- sort(sortSeqlevels(exons), ignore.strand = TRUE)
