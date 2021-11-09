@@ -193,7 +193,7 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
                 id_symbol <- rbind(id_symbol, unnamed_geneID_symbol)
                 id_symbol$external_gene_name <- paste(id_symbol[, 2],
                                                       id_symbol[, 1],
-                                                      sep = "_")
+                                                      sep = "-")
                 break
             }
         }
@@ -209,7 +209,7 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
                                      symbol = unlist(id2symbol_dict$values()))
         id2symbol$symbol <- paste(id2symbol$symbol,
                                        id2symbol$gene_id,
-                                       sep = "_")
+                                       sep = "-")
         return(id2symbol)
     }
 }
