@@ -218,7 +218,7 @@ get_geneID_symbol <- function(gtf = NULL, species_latin_name = NULL)
 create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL, 
                                                  geneID2Symbol,
                                                  flank = 2000, ## prevent TSS expanded 2 Kb in both directions from being out of range
-                                                 promoterRange = c(upstream = 2000, downstream = 100), ## prevent extended promoters from being out of range
+                                                 promoterRange = c(upstream = 2000, downstream = 2000), ## prevent extended promoters from being out of range
                                                  filterChr = c("chrM", "chrY", "chrMT", "chrPltd"),
                                                  out_dir)
 {
@@ -284,7 +284,7 @@ create_ArchR_geneannotation_WO_OrgDb <- function(TxDb = NULL,
                          fix = "start")) %>% 
            plyranges::select(-c("tx_id"))
     
-    ## remove genes whose promoters are close to the chromosome end (promoter regions in upstream and downstream [2000, 100])
+    ## remove genes whose promoters are close to the chromosome end (promoter regions in upstream and downstream [2000, 2000])
     gene_start <-  resize(genes, width = 1, fix ="start")
     gene_start_downstream <- stretch(anchor_5p(gene_start), extend = promoterRange[2])
     gene_start_upstream <- stretch(anchor_3p(gene_start), extend = promoterRange[1])
