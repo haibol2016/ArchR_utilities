@@ -395,7 +395,7 @@ create_ArchR_genomeannotation <- function(BSgenome = NULL,
         seqlevels(blacklist, pruning.mode="coarse") <- tss_chr
         seqlevels(blacklist) <- seqlevelsInUse(blacklist)
     } else {
-        black_list <- NULL
+        black_list <- GRanges()
     }    
     
     # don't need ArchR createGenomeAnnotation() function
