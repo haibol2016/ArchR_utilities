@@ -72,8 +72,8 @@ generate_seed_file <- function(path_to_multifasta,
         stop("There is no multiple fasta files in the directory ", 
              path_to_multifasta, "!")
     }
-    seed_dir <- dirname(path)
-    if (!dir.extists(seed_dir))
+    seed_dir <- dirname(path_to_multifasta)
+    if (!dir.exists(seed_dir))
     {
         dir.create(seed_dir, recursive = TRUE)
     }
