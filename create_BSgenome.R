@@ -28,11 +28,13 @@ generate_multifasta <- function(path_single_fasta_genome, out_dir)
     }
     
     f <- ""
+    line_num <- 1
     while (length({line <- readLines(in_fasta, n = 1, warn = FALSE)}) > 0)
     {
         line <- trimws(line)
         if (grepl("^>", line))
         {
+            if (line_num > 1) close(f)
             f <- gzfile(file.path(out_dir, 
                                   gsub("^>(chr)?([^\\s]+).*", "chr\\2.fa.gz",
                                        line, perl = TRUE)),
@@ -41,6 +43,7 @@ generate_multifasta <- function(path_single_fasta_genome, out_dir)
         } else {
             writeLines(line, f)
         }
+        line_num <- line_num + 1
     }
     close(f)
     close(in_fasta)
